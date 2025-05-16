@@ -143,21 +143,49 @@ async function initializeApp() {
 }
 
 // New function to start the hero slideshow
-function startHeroSlideshow(movies) {
+async function startHeroSlideshow(movies) {
     const heroSection = document.querySelector('.hero-content');
     let currentIndex = 0;
 
-    function updateHero() {
+    async function fetchMovieImages(movieId) {
+        try {
+            const url = `${API_CONFIG.baseURL}/movie/${movieId}/images`;
+            const options = {
+                method: 'GET',
+                headers: {
+                    'accept': 'application/json',
+                    'Authorization': `Bearer ${API_CONFIG.authToken}`
+                }
+            };
+            
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data.backdrops[0]?.file_path || null; // Get first backdrop image
+        } catch (error) {
+            console.error('Error fetching movie images:', error);
+            return null;
+        }
+    }
+
+    async function updateHero() {
         if (movies.length === 0) return;
 
         const movie = movies[currentIndex];
+        const backdropPath = await fetchMovieImages(movie.id);
+        
         heroSection.innerHTML = `
-           <div class="hero-content" style="background-image: url('${movie.posterPath}');">
-                <h1 class="hero-title">${movie.title}</h1>
-                <p class="hero-description">${movie.overview}</p>
-                <div class="hero-buttons">
-                    <button class="btn btn-play"><i class="fas fa-play"></i> Play</button>
-                    <button class="btn btn-more"><i class="fas fa-info-circle"></i> More Info</button>
+            <div class="hero-content" style="background-image: url('${backdropPath ? `${API_CONFIG.imageBaseURL}${backdropPath}` : movie.posterPath}');">
+                <div class="hero-content-overlay">
+                    <h1 class="hero-title">${movie.title}</h1>
+                    <p class="hero-description">${movie.overview}</p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-play"><i class="fas fa-play"></i> Play</button>
+                        <button class="btn btn-more"><i class="fas fa-info-circle"></i> More Info</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -183,24 +211,89 @@ function handleHeaderScroll() {
 /**
  * Handle search functionality
  */
+// Debounce function to prevent excessive API calls
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Search state management
+let currentSearchTerm = '';
+let searchTimeout;
+
 async function handleSearch(e) {
-    if (e.key === 'Enter') {
-        const searchTerm = searchInput.value.trim();
-        if (searchTerm.length > 0) {
-            console.log(`Searching for: ${searchTerm}`);
-            try {
-                const results = await fetchSearchResults(searchTerm);
-                if (results.length > 0) {
-                    renderMovies(trendingRow, results);
-                    document.querySelector('#trending').previousElementSibling.textContent = `Search Results: ${searchTerm}`;
-                } else {
-                    trendingRow.innerHTML = `<div class="no-results">No results found for "${searchTerm}"</div>`;
-                    document.querySelector('#trending').previousElementSibling.textContent = `Search Results: ${searchTerm}`;
-                }
-            } catch (error) {
-                console.error('Error searching:', error);
-            }
+    // Only trigger search on Enter key
+    if (e.key !== 'Enter') return;
+
+    const searchTerm = searchInput.value.trim();
+    
+    // Minimum 3 characters required for search
+    if (searchTerm.length < 3) {
+        if (document.querySelector('.search-results')) {
+            document.querySelector('.search-results').remove();
         }
+        return;
+    }
+
+    try {
+        // Show loading state
+        trendingRow.innerHTML = '<div class="loading">Searching...</div>';
+        
+        const results = await fetchSearchResults(searchTerm);
+        
+        // Remove loading state
+        trendingRow.innerHTML = '';
+        
+        // Create search results section
+        const searchSection = document.createElement('section');
+        searchSection.className = 'movie-section search-results';
+        searchSection.innerHTML = `
+            <div class="container">
+                <div class="search-header">
+                    <h2 class="section-title">Search Results: ${searchTerm}</h2>
+                    <button class="clear-search">Clear</button>
+                </div>
+                <div class="movie-row" id="search-results"></div>
+            </div>
+        `;
+        
+        const searchResultsContainer = searchSection.querySelector('#search-results');
+        
+        if (results.length > 0) {
+            renderMovies(searchResultsContainer, results);
+        } else {
+            searchResultsContainer.innerHTML = '<div class="no-results">No results found for this search term</div>';
+        }
+        
+        // Add search results section before trending section
+        trendingRow.parentElement.insertBefore(searchSection, trendingRow);
+        
+        // Remove existing search results if any
+        const existingSearch = document.querySelector('.search-results');
+        if (existingSearch && existingSearch !== searchSection) {
+            existingSearch.remove();
+        }
+        
+        // Add clear search functionality
+        const clearButton = searchSection.querySelector('.clear-search');
+        clearButton.addEventListener('click', () => {
+            searchInput.value = '';
+            searchSection.remove();
+        });
+        
+        // Update current search term
+        currentSearchTerm = searchTerm;
+        
+    } catch (error) {
+        console.error('Error searching:', error);
+        trendingRow.innerHTML = '<div class="error">Error fetching search results. Please try again.</div>';
     }
 }
 
