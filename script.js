@@ -4,6 +4,7 @@ const popularRow = document.getElementById('popular');
 const topRatedRow = document.getElementById('top-rated');
 const actionRow = document.getElementById('action');
 const searchInput = document.querySelector('.search-bar input');
+const navLinks = document.querySelectorAll('.main-nav a');
 
 const API_CONFIG = {
     baseURL: 'https://api.themoviedb.org/3',
@@ -16,19 +17,77 @@ const API_CONFIG = {
         popular: '/movie/popular',
         topRated: '/movie/top_rated',
         action: '/discover/movie?with_genres=28',
-        search: '/search/movie'
+        search: '/search/movie',
+        tvShows: '/discover/tv',
+        movies: '/discover/movie',
+        newAndPopular: '/movie/now_playing'
     }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', handleHeaderScroll);
     searchInput.addEventListener('keyup', handleSearch);
+    setupNavigation();
     initializeApp();
 });
 
-/**
- * Initialize the application and load movie data
- */
+
+function setupNavigation() {
+    navLinks.forEach(link => {
+        link.addEventListener('click', async (e) => {
+            e.preventDefault();
+            navLinks.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+            
+            const section = link.textContent.toLowerCase();
+            await handleNavigation(section);
+        });
+    });
+}
+
+async function handleNavigation(section) {
+    try {
+        let movies = [];
+        switch (section) {
+            case 'home':
+                await initializeApp();
+                return;
+            case 'tv shows':
+                movies = await fetchMovies(API_CONFIG.endpoints.tvShows);
+                break;
+            case 'movies':
+                movies = await fetchMovies(API_CONFIG.endpoints.movies);
+                break;
+            case 'new & popular':
+                movies = await fetchMovies(API_CONFIG.endpoints.newAndPopular);
+                break;
+            default:
+                return;
+        }
+        
+        // Update UI
+        const mainContent = document.querySelector('.main-content');
+        mainContent.innerHTML = `
+            <section class="movie-section">
+                <div class="container">
+                    <h2 class="section-title">${section.charAt(0).toUpperCase() + section.slice(1)}</h2>
+                    <div class="movie-row" id="${section.replace(/\s+/g, '-')}">
+                    </div>
+                </div>
+            </section>
+        `;
+        
+        const container = document.getElementById(section.replace(/\s+/g, '-'));
+        if (movies.length > 0) {
+            renderMovies(container, movies);
+        } else {
+            container.innerHTML = '<div class="no-results">No content available</div>';
+        }
+    } catch (error) {
+        console.error('Error handling navigation:', error);
+    }
+}
+
 async function initializeApp() {
     try {
         const trending = await fetchMovies(API_CONFIG.endpoints.trending);
@@ -36,13 +95,47 @@ async function initializeApp() {
         const topRated = await fetchMovies(API_CONFIG.endpoints.topRated);
         const action = await fetchMovies(API_CONFIG.endpoints.action);
         
+        // Reset main content to original structure
+        const mainContent = document.querySelector('.main-content');
+        mainContent.innerHTML = `
+            <section class="movie-section">
+                <div class="container">
+                    <h2 class="section-title">Trending Now</h2>
+                    <div class="movie-row" id="trending"></div>
+                </div>
+            </section>
+            <section class="movie-section">
+                <div class="container">
+                    <h2 class="section-title">Popular on Netflix</h2>
+                    <div class="movie-row" id="popular"></div>
+                </div>
+            </section>
+            <section class="movie-section">
+                <div class="container">
+                    <h2 class="section-title">Top Rated</h2>
+                    <div class="movie-row" id="top-rated"></div>
+                </div>
+            </section>
+            <section class="movie-section">
+                <div class="container">
+                    <h2 class="section-title">Action Movies</h2>
+                    <div class="movie-row" id="action"></div>
+                </div>
+            </section>
+        `;
+        
+        // Get fresh references to containers
+        const trendingRow = document.getElementById('trending');
+        const popularRow = document.getElementById('popular');
+        const topRatedRow = document.getElementById('top-rated');
+        const actionRow = document.getElementById('action');
+        
         if (trending.length > 0) renderMovies(trendingRow, trending);
         if (popular.length > 0) renderMovies(popularRow, popular);
         if (topRated.length > 0) renderMovies(topRatedRow, topRated);
         if (action.length > 0) renderMovies(actionRow, action);
     } catch (error) {
         console.error('Error initializing app:', error);
-        loadPlaceholderMovies();
     }
 }
 
