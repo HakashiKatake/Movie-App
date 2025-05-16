@@ -3,10 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie App</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Netflix Clone</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    
+    <!-- Header Section -->
+    <header class="main-header">
+        <div class="container header-container">
+            <div class="logo">
+                <a href="#">NETFLIX</a>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="#" class="active">Home</a></li>
+                    <li><a href="#">TV Shows</a></li>
+                    <li><a href="#">Movies</a></li>
+                    <li><a href="#">New & Popular</a></li>
+                    <li><a href="#">My List</a></li>
+                </ul>
+            </nav>
+            <div class="header-right">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search">
+                </div>
+                <div class="profile">
+                    <img src="https://occ-0-2042-3662.1.nflxso.net/dnm/api/v6/K6hjPJd6cR6FpVELC5Pd6ovHRSk/AAAABZ2iWyMn8RTIaZ3ulUEpg-4WYrR5JcmtTm9hdVk8_BJ27nsLngsd9ZJ9X1_QCTSRFJJ3K_WPEQChFEHzSr9J3QS9C2f9dB-n6d4.png?r=201" alt="Profile">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content container">
+            <h1 class="hero-title">Stranger Things</h1>
+            <p class="hero-description">When a young boy vanishes, a small town uncovers a mystery involving secret experiments, terrifying supernatural forces, and one strange little girl.</p>
+            <div class="hero-buttons">
+                <button class="btn btn-play"><i class="fas fa-play"></i> Play</button>
+                <button class="btn btn-more"><i class="fas fa-info-circle"></i> More Info</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Section -->
+    <main class="main-content">
+        <!-- Trending Now Section -->
+        <section class="movie-section">
+            <div class="container">
+                <h2 class="section-title">Trending Now</h2>
+                <div class="movie-row" id="trending">
+                    <!-- Content will be dynamically loaded from API -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Popular on Netflix Section -->
+        <section class="movie-section">
+            <div class="container">
+                <h2 class="section-title">Popular on Netflix</h2>
+                <div class="movie-row" id="popular">
+                    <!-- Content will be dynamically loaded from API -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Top Rated Section -->
+        <section class="movie-section">
+            <div class="container">
+                <h2 class="section-title">Top Rated</h2>
+                <div class="movie-row" id="top-rated">
+                    <!-- Content will be dynamically loaded from API -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Action Movies Section -->
+        <section class="movie-section">
+            <div class="container">
+                <h2 class="section-title">Action Movies</h2>
+                <div class="movie-row" id="action">
+                    <!-- Content will be dynamically loaded from API -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <ul>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Account</a></li>
+                        <li><a href="#">Media Center</a></li>
+                    </ul>
+                    <ul>
+                        <li><a href="#">Investor Relations</a></li>
+                        <li><a href="#">Jobs</a></li>
+                        <li><a href="#">Ways to Watch</a></li>
+                        <li><a href="#">Terms of Use</a></li>
+                    </ul>
+                    <ul>
+                        <li><a href="#">Privacy</a></li>
+                        <li><a href="#">Cookie Preferences</a></li>
+                        <li><a href="#">Corporate Information</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div class="copyright">
+                    <p>&copy; 2023 Netflix Clone. All Rights Reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
 </body>
 </html>
