@@ -134,9 +134,39 @@ async function initializeApp() {
         if (popular.length > 0) renderMovies(popularRow, popular);
         if (topRated.length > 0) renderMovies(topRatedRow, topRated);
         if (action.length > 0) renderMovies(actionRow, action);
+        
+        // Start the hero section slideshow
+        startHeroSlideshow(topRated);
     } catch (error) {
         console.error('Error initializing app:', error);
     }
+}
+
+// New function to start the hero slideshow
+function startHeroSlideshow(movies) {
+    const heroSection = document.querySelector('.hero-content');
+    let currentIndex = 0;
+
+    function updateHero() {
+        if (movies.length === 0) return;
+
+        const movie = movies[currentIndex];
+        heroSection.innerHTML = `
+           <div class="hero-content" style="background-image: url('${movie.posterPath}');">
+                <h1 class="hero-title">${movie.title}</h1>
+                <p class="hero-description">${movie.overview}</p>
+                <div class="hero-buttons">
+                    <button class="btn btn-play"><i class="fas fa-play"></i> Play</button>
+                    <button class="btn btn-more"><i class="fas fa-info-circle"></i> More Info</button>
+                </div>
+            </div>
+        `;
+
+        currentIndex = (currentIndex + 1) % Math.min(movies.length, 4); // Loop through top 4 movies
+    }
+
+    updateHero(); // Initial call
+    setInterval(updateHero, 5000); // Change every 5 seconds
 }
 
 /**
