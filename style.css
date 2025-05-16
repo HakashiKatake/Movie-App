@@ -6,7 +6,8 @@
 }
 
 body {
-    font-family: 'Arial', sans-serif;
+    margin: 0;
+    font-family: Arial, sans-serif;
     background-color: #141414;
     color: #fff;
     line-height: 1.5;
@@ -21,7 +22,7 @@ body {
 
 a {
     text-decoration: none;
-    color: #fff;
+    color: var(--text-color);
 }
 
 ul {
@@ -50,7 +51,7 @@ button {
 }
 
 .main-header.scrolled {
-    background-color: #141414;
+    background-color: var(--secondary-color);
 }
 
 .header-container {
@@ -59,11 +60,28 @@ button {
     align-items: center;
 }
 
+.logo {
+    display: flex;
+    align-items: center;
+}
+
 .logo a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.logo-img {
+    width: 32px;
+    height: 32px;
+}
+
+.logo span {
     color: #e50914;
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: bold;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
 }
 
 .main-nav ul {
@@ -72,11 +90,13 @@ button {
 }
 
 .main-nav a {
-    font-size: 0.9rem;
+    color: #fff;
+    text-decoration: none;
+    padding: 8px 16px;
     transition: color 0.3s ease;
 }
 
-.main-nav a:hover, 
+.main-nav a:hover,
 .main-nav a.active {
     color: #e50914;
 }
@@ -95,7 +115,6 @@ button {
     border-radius: 4px;
     padding: 6px 12px;
     margin-right: 20px;
-    transition: all 0.3s ease;
 }
 
 .search-bar:focus-within {
@@ -119,7 +138,8 @@ button {
 }
 
 .search-bar input::placeholder {
-    color: #aaa;
+    color: #888;
+    font-size: 0.9rem;
 }
 
 .profile img {
@@ -284,7 +304,7 @@ button {
 
 .search-results {
     margin-bottom: 2rem;
-    background-color: #141414;
+    background-color: var(--secondary-color);
     border-radius: 8px;
     overflow: hidden;
 }
@@ -299,7 +319,7 @@ button {
 }
 
 .clear-search {
-    background-color: #e50914;
+    background-color: var(--primary-color);
     color: white;
     border: none;
     padding: 0.5rem 1rem;
@@ -337,9 +357,10 @@ button {
 }
 
 .section-title {
+    color: var(--text-color);
     font-size: 1.5rem;
-    margin-bottom: 15px;
-    font-weight: 600;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
 }
 
 .movie-row {
@@ -356,17 +377,16 @@ button {
 }
 
 .movie-card {
-    min-width: 200px;
+    position: relative;
     border-radius: 4px;
     overflow: hidden;
-    position: relative;
     transition: transform 0.3s ease;
+    min-width: 200px;
     cursor: pointer;
 }
 
 .movie-card:hover {
-    transform: scale(1.08);
-    z-index: 10;
+    transform: scale(1.05);
 }
 
 .movie-card img {
