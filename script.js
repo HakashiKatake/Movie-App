@@ -27,6 +27,7 @@ const API_CONFIG = {
 document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', handleHeaderScroll);
     searchInput.addEventListener('keyup', handleSearch);
+    searchInput.addEventListener('input', handleSearch); // Add input event for real-time search
     setupNavigation();
     initializeApp();
 });
@@ -229,71 +230,125 @@ let currentSearchTerm = '';
 let searchTimeout;
 
 async function handleSearch(e) {
-    // Only trigger search on Enter key
-    if (e.key !== 'Enter') return;
-
     const searchTerm = searchInput.value.trim();
-    
-    // Minimum 3 characters required for search
-    if (searchTerm.length < 3) {
-        if (document.querySelector('.search-results')) {
-            document.querySelector('.search-results').remove();
+
+    // Clear search results if search is empty
+    if (searchTerm.length === 0) {
+        const searchResults = document.querySelector('.search-results');
+        if (searchResults) {
+            searchResults.remove();
+            initializeApp(); // Reset to home view
         }
         return;
     }
 
-    try {
-        // Show loading state
-        trendingRow.innerHTML = '<div class="loading">Searching...</div>';
-        
-        const results = await fetchSearchResults(searchTerm);
-        
-        // Remove loading state
-        trendingRow.innerHTML = '';
-        
-        // Create search results section
-        const searchSection = document.createElement('section');
-        searchSection.className = 'movie-section search-results';
-        searchSection.innerHTML = `
-            <div class="container">
-                <div class="search-header">
-                    <h2 class="section-title">Search Results: ${searchTerm}</h2>
-                    <button class="clear-search">Clear</button>
-                </div>
-                <div class="movie-row" id="search-results"></div>
-            </div>
-        `;
-        
-        const searchResultsContainer = searchSection.querySelector('#search-results');
-        
-        if (results.length > 0) {
-            renderMovies(searchResultsContainer, results);
-        } else {
-            searchResultsContainer.innerHTML = '<div class="no-results">No results found for this search term</div>';
+    // Only search if Enter is pressed or if there are 3 or more characters
+    if (e.key === 'Enter' || (searchTerm.length >= 3 && e.type === 'input')) {
+        try {
+            // Clear main content and show loading
+            const mainContent = document.querySelector('.main-content');
+            mainContent.innerHTML = `
+                <section class="movie-section search-results">
+                    <div class="container">
+                        <div class="search-header">
+                            <h2 class="section-title">Searching for: ${searchTerm}</h2>
+                            <div class="loading-spinner"></div>
+                        </div>
+                    </div>
+                </section>
+            `;
+
+            // Fetch both movies and TV shows
+            const [movieResults, tvResults] = await Promise.all([
+                fetch(`${API_CONFIG.baseURL}/search/movie?query=${encodeURIComponent(searchTerm)}&include_adult=false`, {
+                    headers: {
+                        'Authorization': `Bearer ${API_CONFIG.authToken}`,
+                        'accept': 'application/json'
+                    }
+                }).then(res => res.json()),
+                fetch(`${API_CONFIG.baseURL}/search/tv?query=${encodeURIComponent(searchTerm)}&include_adult=false`, {
+                    headers: {
+                        'Authorization': `Bearer ${API_CONFIG.authToken}`,
+                        'accept': 'application/json'
+                    }
+                }).then(res => res.json())
+            ]);
+
+            // Combine and process results
+            const combinedResults = [
+                ...movieResults.results.map(movie => ({
+                    id: movie.id,
+                    title: movie.title,
+                    posterPath: movie.poster_path ? `${API_CONFIG.imageBaseURL}${movie.poster_path}` : API_CONFIG.noImageURL,
+                    rating: movie.vote_average,
+                    releaseDate: movie.release_date,
+                    overview: movie.overview,
+                    type: 'movie',
+                    genre: movie.genre_ids ? getGenreName(movie.genre_ids[0]) : 'Unknown'
+                })),
+                ...tvResults.results.map(tv => ({
+                    id: tv.id,
+                    title: tv.name,
+                    posterPath: tv.poster_path ? `${API_CONFIG.imageBaseURL}${tv.poster_path}` : API_CONFIG.noImageURL,
+                    rating: tv.vote_average,
+                    releaseDate: tv.first_air_date,
+                    overview: tv.overview,
+                    type: 'tv',
+                    genre: tv.genre_ids ? getGenreName(tv.genre_ids[0]) : 'Unknown'
+                }))
+            ];
+
+            // Sort by popularity (assuming higher vote_average means more popular)
+            combinedResults.sort((a, b) => b.rating - a.rating);
+
+            // Update the UI with results
+            mainContent.innerHTML = `
+                <section class="movie-section search-results">
+                    <div class="container">
+                        <div class="search-header">
+                            <h2 class="section-title">Search Results: ${searchTerm}</h2>
+                            <button class="clear-search">Clear Search</button>
+                        </div>
+                        <div class="movie-row" id="search-results">
+                            ${combinedResults.length === 0 ? 
+                                '<div class="no-results">No results found. Try a different search term.</div>' : 
+                                ''}
+                        </div>
+                    </div>
+                </section>
+            `;
+
+            // Render results if any found
+            if (combinedResults.length > 0) {
+                const searchResultsContainer = document.getElementById('search-results');
+                renderMovies(searchResultsContainer, combinedResults);
+            }
+
+            // Add clear search button functionality
+            const clearButton = document.querySelector('.clear-search');
+            if (clearButton) {
+                clearButton.addEventListener('click', () => {
+                    searchInput.value = '';
+                    initializeApp(); // Reset to home view
+                });
+            }
+
+        } catch (error) {
+            console.error('Error searching:', error);
+            const mainContent = document.querySelector('.main-content');
+            mainContent.innerHTML = `
+                <section class="movie-section search-results">
+                    <div class="container">
+                        <div class="search-header">
+                            <h2 class="section-title">Error</h2>
+                        </div>
+                        <div class="error-message">
+                            An error occurred while searching. Please try again.
+                        </div>
+                    </div>
+                </section>
+            `;
         }
-        
-        // Add search results section before trending section
-        trendingRow.parentElement.insertBefore(searchSection, trendingRow);
-        
-        // Remove existing search results if any
-        const existingSearch = document.querySelector('.search-results');
-        if (existingSearch && existingSearch !== searchSection) {
-            existingSearch.remove();
-        }
-        
-        // Add clear search functionality
-        const clearButton = searchSection.querySelector('.clear-search');
-        clearButton.addEventListener('click', () => {
-            searchInput.value = '';
-            searchSection.remove();
-        });
-        
-        // Update current search term
-        currentSearchTerm = searchTerm;
-        
-    } catch (error) {
-        console.error('Error searching:', error);
-        trendingRow.innerHTML = '<div class="error">Error fetching search results. Please try again.</div>';
     }
 }
 

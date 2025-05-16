@@ -90,23 +90,32 @@ button {
 .search-bar {
     display: flex;
     align-items: center;
-    background-color: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 5px 10px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 4px;
+    padding: 6px 12px;
+    margin-right: 20px;
+    transition: all 0.3s ease;
 }
 
-.search-bar i {
-    margin-right: 10px;
-    color: #ccc;
+.search-bar:focus-within {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
 }
 
 .search-bar input {
-    background-color: transparent;
+    background: none;
     border: none;
-    color: #fff;
+    color: white;
+    margin-left: 10px;
     outline: none;
-    width: 180px;
+    width: 200px;
+    font-size: 14px;
+}
+
+.search-bar i {
+    color: #999;
 }
 
 .search-bar input::placeholder {
